@@ -21,6 +21,7 @@ Ordered by what unblocks the most users. Nothing here is a promise of a date.
 - [x] Report/flag flow feeding the admin console
 - [x] Append-only audit log for privileged actions
 - [x] Pagination for the talent directory
+- [x] Playwright end-to-end coverage of hire → release → review access rules
 
 ## Next (v0.2) — make it safe to run publicly
 

@@ -26,6 +26,14 @@ npm test
 npm run build
 ```
 
+Or run them together — plus the auth smoke checks — with `npm run ci` / `npm run verify`. For anything that touches
+the hiring loop, run the browser suite too:
+
+```bash
+npm run e2e:install   # once
+npm run e2e
+```
+
 ## Pull requests
 
 1. Branch from `main` (`feat/short-name`, `fix/short-name`).

@@ -83,9 +83,29 @@ to the internet.**
 | `npm start`        | Serve the production build                                |
 | `npm run typecheck`| `tsc --noEmit`                                            |
 | `npm test`         | Vitest unit tests (money, validation, helpers)            |
+| `npm run e2e`      | Playwright end-to-end tests against a fresh database      |
+| `npm run ci`       | Typecheck, unit tests and build — the pipeline gates      |
+| `npm run verify`   | `ci` plus the database-level auth smoke checks            |
 | `npm run db:push`  | Apply the Prisma schema to the database                   |
 | `npm run db:seed`  | Reset the demo dataset                                    |
 | `npm run db:reset` | Drop, recreate and reseed                                 |
+
+## Testing
+
+Two layers, both runnable locally and in CI:
+
+- **Unit tests** (`tests/`) — money maths, validation schemas, rate-limit windows and helpers. Fast, no database.
+- **End-to-end** (`e2e/`) — Playwright drives a real server against a disposable SQLite database and covers the
+  money path: hire a proposal → milestone funded → release → fee recorded → contract completed → freelancer notified,
+  plus the rule that a third account gets a 404 on someone else's contract, and the email-verification gate.
+
+```bash
+npm run e2e:install   # once, downloads Chromium
+npm run e2e
+```
+
+The E2E suite seeds its own database (`e2e.db`), builds the app and starts it on port 3100, so it never touches your
+development data.
 
 ## Architecture
 
