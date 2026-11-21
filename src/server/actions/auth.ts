@@ -3,11 +3,19 @@
 import { redirect } from 'next/navigation';
 import { db } from '@/lib/db';
 import { hashPassword, verifyPassword } from '@/lib/password';
-import { createSession, destroySession, getCurrentUser } from '@/lib/auth';
+import { createSession, destroySession, getCurrentUser, requireUser } from '@/lib/auth';
 import { loginSchema, signupSchema } from '@/lib/validation';
 import { slugify } from '@/lib/utils';
+import { clientKey } from '@/lib/request';
+import { formatRetryAfter, rateLimit } from '@/lib/rate-limit';
+import { consumeVerificationToken, createVerificationToken } from '@/lib/verification';
+import { sendVerificationEmail } from '@/lib/email';
 
 export type AuthState = { error?: string; fieldErrors?: Record<string, string> } | null;
+
+const SIGNUP_LIMIT = { max: 5, windowMs: 10 * 60 * 1000 };
+const LOGIN_LIMIT = { max: 10, windowMs: 10 * 60 * 1000 };
+const RESEND_LIMIT = { max: 3, windowMs: 60 * 60 * 1000 };
 
 async function uniqueHandle(base: string): Promise<string> {
   const root = slugify(base) || 'member';
@@ -21,6 +29,11 @@ async function uniqueHandle(base: string): Promise<string> {
 }
 
 export async function signupAction(_prev: AuthState, formData: FormData): Promise<AuthState> {
+  const gate = rateLimit(await clientKey('signup'), SIGNUP_LIMIT.max, SIGNUP_LIMIT.windowMs);
+  if (!gate.allowed) {
+    return { error: `Too many signups from this address. Try again in ${formatRetryAfter(gate.retryAfterMs)}.` };
+  }
+
   const raw = {
     name: String(formData.get('name') ?? ''),
     email: String(formData.get('email') ?? ''),
@@ -52,8 +65,11 @@ export async function signupAction(_prev: AuthState, formData: FormData): Promis
     },
   });
 
+  const token = await createVerificationToken(user.id);
+  await sendVerificationEmail(user.email, token);
+
   await createSession(user.id);
-  redirect(parsed.data.role === 'CLIENT' ? '/dashboard' : '/jobs');
+  redirect('/verify-notice');
 }
 
 export async function loginAction(_prev: AuthState, formData: FormData): Promise<AuthState> {
@@ -64,6 +80,15 @@ export async function loginAction(_prev: AuthState, formData: FormData): Promise
 
   if (!parsed.success) {
     return { error: 'Enter your email and password.' };
+  }
+
+  const gate = rateLimit(
+    await clientKey(`login:${parsed.data.email}`),
+    LOGIN_LIMIT.max,
+    LOGIN_LIMIT.windowMs,
+  );
+  if (!gate.allowed) {
+    return { error: `Too many attempts. Try again in ${formatRetryAfter(gate.retryAfterMs)}.` };
   }
 
   const user = await db.user.findUnique({ where: { email: parsed.data.email } });
@@ -81,6 +106,39 @@ export async function loginAction(_prev: AuthState, formData: FormData): Promise
   redirect(next.startsWith('/') ? next : '/dashboard');
 }
 
+export async function resendVerificationAction(): Promise<void> {
+  const user = await requireUser('/verify-notice');
+  if (user.emailVerifiedAt) redirect('/dashboard');
+
+  const gate = rateLimit(`resend:${user.id}`, RESEND_LIMIT.max, RESEND_LIMIT.windowMs);
+  if (!gate.allowed) redirect('/verify-notice?error=rate-limited');
+
+  const token = await createVerificationToken(user.id);
+  await sendVerificationEmail(user.email, token);
+  redirect('/verify-notice?sent=1');
+}
+
+export async function confirmEmailAction(formData: FormData): Promise<void> {
+  const token = String(formData.get('token') ?? '');
+  if (!token) redirect('/verify-notice?error=invalid');
+
+  const result = await consumeVerificationToken(token);
+  if (!result.ok) {
+    redirect(`/verify-notice?error=${result.reason}`);
+  }
+
+  await db.notification.create({
+    data: {
+      userId: result.userId,
+      kind: 'ACCOUNT',
+      body: 'Your email address is confirmed.',
+      href: '/dashboard',
+    },
+  });
+
+  redirect('/dashboard?verified=1');
+}
+
 export async function logoutAction(): Promise<void> {
   await destroySession();
   redirect('/');
@@ -90,6 +148,7 @@ export async function demoLoginAction(formData: FormData): Promise<void> {
   const email = String(formData.get('email') ?? '');
   const user = await db.user.findUnique({ where: { email } });
   if (!user) redirect('/login?error=demo-missing');
+  if (user.isSuspended) redirect('/login?error=suspended');
   await createSession(user.id);
   redirect('/dashboard');
 }

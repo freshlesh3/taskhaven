@@ -15,11 +15,12 @@ Ordered by what unblocks the most users. Nothing here is a promise of a date.
 - [x] Admin console: hide jobs, suspend accounts, close listings
 - [x] Job editing, closing and proposal withdrawal
 - [x] Password change that revokes other sessions
+- [x] Email verification with single-use hashed tokens
+- [x] Rate limits on signup, login and verification resends
 
 ## Next (v0.2) — make it safe to run publicly
 
-- [ ] Email verification and password reset
-- [ ] Signup and login rate limiting
+- [ ] Password reset by email (the token plumbing and mailer exist)
 - [ ] Report/flag flow feeding the admin console
 - [ ] Pagination for talent and contracts
 - [ ] Structured audit log for privileged actions

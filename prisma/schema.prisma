@@ -28,11 +28,13 @@ model User {
   isAvailable  Boolean  @default(true)
   isPublic     Boolean  @default(true)
   isSuspended  Boolean  @default(false)
+  emailVerifiedAt DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   sessions        Session[]
   skills          UserSkill[]
+  tokens          VerificationToken[]
   jobs            Job[]
   proposals       Proposal[]
   contractsClient Contract[]     @relation("ClientContracts")
@@ -65,6 +67,20 @@ model Skill {
   slug   String      @unique
   users  UserSkill[]
   jobs   JobSkill[]
+}
+
+/// Single-use, hashed email-verification token.
+model VerificationToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  purpose   String    @default("EMAIL_VERIFICATION")
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
 }
 
 model UserSkill {

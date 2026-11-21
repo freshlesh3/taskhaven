@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import './globals.css';
 import { Header } from '@/components/site/header';
 import { Footer } from '@/components/site/footer';
@@ -30,6 +31,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="en">
       <body className="flex min-h-screen flex-col">
         <Header user={user} unreadCount={unreadCount} />
+        {user && !user.emailVerifiedAt ? (
+          <div className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-xs text-amber-900">
+            Confirm your email to post jobs and send proposals.{' '}
+            <Link href="/verify-notice" className="font-semibold underline">
+              Resend the link
+            </Link>
+          </div>
+        ) : null}
         <main className="flex-1">{children}</main>
         <Footer />
       </body>

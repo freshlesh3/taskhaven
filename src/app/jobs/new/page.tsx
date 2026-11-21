@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 import { JobForm } from '@/components/forms/job-form';
 import { requireUser } from '@/lib/auth';
 
@@ -6,6 +7,7 @@ export const metadata: Metadata = { title: 'Post a job' };
 
 export default async function NewJobPage() {
   const user = await requireUser('/jobs/new');
+  if (!user.emailVerifiedAt) redirect('/verify-notice?error=unverified');
 
   return (
     <div className="container-page py-12">

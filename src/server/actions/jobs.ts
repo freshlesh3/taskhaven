@@ -28,6 +28,7 @@ async function resolveSkillIds(names: string[] | undefined): Promise<string[]> {
 
 export async function createJobAction(_prev: FormState, formData: FormData): Promise<FormState> {
   const user = await requireUser('/jobs/new');
+  if (!user.emailVerifiedAt) redirect('/verify-notice?error=unverified');
 
   const parsed = jobSchema.safeParse({
     title: String(formData.get('title') ?? ''),
@@ -78,6 +79,7 @@ export async function createJobAction(_prev: FormState, formData: FormData): Pro
 export async function submitProposalAction(_prev: FormState, formData: FormData): Promise<FormState> {
   const jobId = String(formData.get('jobId') ?? '');
   const user = await requireUser(`/jobs/${jobId}`);
+  if (!user.emailVerifiedAt) redirect('/verify-notice?error=unverified');
 
   const parsed = proposalSchema.safeParse({
     jobId,

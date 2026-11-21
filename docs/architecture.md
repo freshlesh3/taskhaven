@@ -58,6 +58,17 @@ than returning a 403 that leaks existence.
 No third-party identity provider is required, which keeps self-hosting trivial and the flow auditable. Adding OAuth
 later means mapping an external identity onto `User` and calling `createSession`.
 
+## Email verification and abuse limits
+
+- `src/lib/verification.ts` mints a 32-byte token, stores only its SHA-256 hash with a 24-hour expiry, and consumes it
+  inside a transaction that also stamps `User.emailVerifiedAt`. Replays return `used`.
+- `src/lib/email.ts` prints messages to the log unless `RESEND_API_KEY` is set, so a fresh clone is verifiable without
+  any provider.
+- Posting a job or sending a proposal is gated on `emailVerifiedAt` in both the page and the action — the action is the
+  enforcement point, the page gate is UX.
+- `src/lib/rate-limit.ts` is a fixed-window limiter keyed by client address (signup, login) or account id (resends).
+  The map is in-process and swept when it grows; behind multiple instances, swap it for Redis.
+
 ## Rendering and caching
 
 - Pages are dynamic (they read cookies for the header), so there is no stale personalised markup.

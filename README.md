@@ -25,6 +25,8 @@ proprietary dependency in the critical path. Fork it for a niche marketplace, an
 ## Features
 
 - **Accounts and sessions** — email + password auth, bcrypt hashes, database-backed sessions, hashed session tokens.
+- **Email verification** — single-use hashed tokens, 24-hour expiry, gated posting and proposals, resend with limits.
+- **Abuse brakes** — per-IP limits on signup and login, per-account limits on verification resends.
 - **Two-sided profiles** — one account can hire and work; public profiles with skills, rates, availability and reviews.
 - **Jobs** — post a brief with budget type, range, experience level, duration and skills; browse and filter by
   category, budget and level, with keyword search across titles, descriptions and skills.
@@ -51,6 +53,9 @@ npm run dev
 ```
 
 Open <http://localhost:3000>. The seed creates eight jobs, six proposals and one live contract.
+
+Signing up sends a confirmation link. Without an email provider configured the link is printed to the server console
+(`[taskhaven:email] …`); set `RESEND_API_KEY` in `.env` to send real mail. Seeded demo accounts are already verified.
 
 ### Demo accounts
 

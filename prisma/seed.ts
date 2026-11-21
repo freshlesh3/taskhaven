@@ -302,6 +302,7 @@ async function main() {
         avatarHue: user.avatarHue,
         passwordHash,
         isAvailable: true,
+        emailVerifiedAt: new Date(),
         skills: {
           create: user.skills
             .map((name) => skillIds.get(name))

@@ -167,12 +167,22 @@ export default async function JobDetailPage({ params }: { params: Params }) {
                 )
               ) : job.status === 'OPEN' ? (
                 <div className="space-y-4">
+                  {user && !user.emailVerifiedAt ? (
+                    <div className="rounded-xl bg-amber-50 p-3 text-xs leading-5 text-amber-900">
+                      Confirm your email before sending proposals.{' '}
+                      <Link href="/verify-notice" className="font-semibold underline">
+                        Resend the link
+                      </Link>
+                    </div>
+                  ) : null}
                   {myProposal ? (
                     <div className="rounded-xl bg-brand-50 p-3 text-xs text-brand-900">
                       You already proposed {formatMoney(myProposal.bidAmount)} · {PROPOSAL_STATUS_LABELS[myProposal.status]}
                     </div>
                   ) : null}
-                  <ProposalForm jobId={job.id} suggestedBid={rating ? Math.round(rating) : undefined} />
+                  {user?.emailVerifiedAt ? (
+                    <ProposalForm jobId={job.id} suggestedBid={rating ? Math.round(rating) : undefined} />
+                  ) : null}
                 </div>
               ) : (
                 <p className="text-sm text-ink-500">This job is closed to new proposals.</p>
