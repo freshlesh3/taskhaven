@@ -1,0 +1,33 @@
+# Runs Taskhaven with a SQLite database persisted in ./data.
+#
+#   docker compose up --build
+#   docker compose exec app npm run db:seed   # optional demo data
+#
+# To use PostgreSQL instead: switch `provider` in prisma/schema.prisma to
+# "postgresql", uncomment the db service and the DATABASE_URL below.
+
+services:
+  app:
+    build: .
+    ports:
+      - '3000:3000'
+    environment:
+      DATABASE_URL: file:/app/data/taskhaven.db
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      APP_SECRET: change-me-in-production
+    volumes:
+      - ./data:/app/data
+
+  # db:
+  #   image: postgres:16-alpine
+  #   environment:
+  #     POSTGRES_USER: taskhaven
+  #     POSTGRES_PASSWORD: taskhaven
+  #     POSTGRES_DB: taskhaven
+  #   ports:
+  #     - '5432:5432'
+  #   volumes:
+  #     - pgdata:/var/lib/postgresql/data
+
+# volumes:
+#   pgdata:

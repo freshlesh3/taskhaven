@@ -1,0 +1,95 @@
+'use server';
+
+import { redirect } from 'next/navigation';
+import { db } from '@/lib/db';
+import { hashPassword, verifyPassword } from '@/lib/password';
+import { createSession, destroySession, getCurrentUser } from '@/lib/auth';
+import { loginSchema, signupSchema } from '@/lib/validation';
+import { slugify } from '@/lib/utils';
+
+export type AuthState = { error?: string; fieldErrors?: Record<string, string> } | null;
+
+async function uniqueHandle(base: string): Promise<string> {
+  const root = slugify(base) || 'member';
+  let handle = root;
+  let suffix = 1;
+  while (await db.user.findUnique({ where: { handle } })) {
+    suffix += 1;
+    handle = `${root}-${suffix}`;
+  }
+  return handle;
+}
+
+export async function signupAction(_prev: AuthState, formData: FormData): Promise<AuthState> {
+  const raw = {
+    name: String(formData.get('name') ?? ''),
+    email: String(formData.get('email') ?? ''),
+    password: String(formData.get('password') ?? ''),
+    role: String(formData.get('role') ?? 'FREELANCER'),
+  };
+
+  const parsed = signupSchema.safeParse(raw);
+  if (!parsed.success) {
+    const fieldErrors: Record<string, string> = {};
+    for (const issue of parsed.error.issues) {
+      fieldErrors[String(issue.path[0] ?? 'form')] = issue.message;
+    }
+    return { fieldErrors, error: 'Check the highlighted fields.' };
+  }
+
+  const existing = await db.user.findUnique({ where: { email: parsed.data.email } });
+  if (existing) return { fieldErrors: { email: 'That email already has an account' } };
+
+  const handle = await uniqueHandle(parsed.data.name);
+  const user = await db.user.create({
+    data: {
+      name: parsed.data.name,
+      email: parsed.data.email,
+      passwordHash: await hashPassword(parsed.data.password),
+      handle,
+      role: parsed.data.role,
+      headline: parsed.data.role === 'CLIENT' ? 'Hiring on Taskhaven' : 'Independent specialist',
+    },
+  });
+
+  await createSession(user.id);
+  redirect(parsed.data.role === 'CLIENT' ? '/dashboard' : '/jobs');
+}
+
+export async function loginAction(_prev: AuthState, formData: FormData): Promise<AuthState> {
+  const parsed = loginSchema.safeParse({
+    email: String(formData.get('email') ?? ''),
+    password: String(formData.get('password') ?? ''),
+  });
+
+  if (!parsed.success) {
+    return { error: 'Enter your email and password.' };
+  }
+
+  const user = await db.user.findUnique({ where: { email: parsed.data.email } });
+  if (!user || !(await verifyPassword(parsed.data.password, user.passwordHash))) {
+    return { error: 'That email and password do not match.' };
+  }
+
+  await createSession(user.id);
+
+  const next = String(formData.get('next') ?? '');
+  redirect(next.startsWith('/') ? next : '/dashboard');
+}
+
+export async function logoutAction(): Promise<void> {
+  await destroySession();
+  redirect('/');
+}
+
+export async function demoLoginAction(formData: FormData): Promise<void> {
+  const email = String(formData.get('email') ?? '');
+  const user = await db.user.findUnique({ where: { email } });
+  if (!user) redirect('/login?error=demo-missing');
+  await createSession(user.id);
+  redirect('/dashboard');
+}
+
+export async function currentUserOrNull() {
+  return getCurrentUser();
+}

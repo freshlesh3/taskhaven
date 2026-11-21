@@ -1,0 +1,229 @@
+// Taskhaven schema — a self-hostable freelance marketplace.
+// SQLite by default so the project runs anywhere. To use PostgreSQL, change
+// `provider` to "postgresql", set DATABASE_URL, and run `npm run db:push`.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// A person using the marketplace. One account can both hire and work.
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  handle       String   @unique
+  role         String   @default("FREELANCER") // FREELANCER | CLIENT | ADMIN
+  headline     String?
+  bio          String?
+  country      String?
+  timezone     String?
+  hourlyRate   Int? // minor units (cents)
+  avatarHue    Int      @default(150)
+  isAvailable  Boolean  @default(true)
+  isPublic     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sessions        Session[]
+  skills          UserSkill[]
+  jobs            Job[]
+  proposals       Proposal[]
+  contractsClient Contract[]     @relation("ClientContracts")
+  contractsWork   Contract[]     @relation("FreelancerContracts")
+  messages        Message[]
+  reviewsWritten  Review[]       @relation("ReviewAuthor")
+  reviewsReceived Review[]       @relation("ReviewSubject")
+  ledgerEntries   LedgerEntry[]
+  notifications   Notification[]
+
+  @@index([role])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userAgent String?
+  ip        String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Skill {
+  id     String      @id @default(cuid())
+  name   String      @unique
+  slug   String      @unique
+  users  UserSkill[]
+  jobs   JobSkill[]
+}
+
+model UserSkill {
+  id      String @id @default(cuid())
+  userId  String
+  skillId String
+  level   Int    @default(3) // 1–5
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill   Skill  @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, skillId])
+}
+
+/// A job posting. `budgetType` is FIXED or HOURLY; amounts are minor units.
+model Job {
+  id           String   @id @default(cuid())
+  clientId     String
+  client       User     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  title        String
+  description  String
+  category     String
+  budgetType   String   @default("FIXED") // FIXED | HOURLY
+  budgetMin    Int?
+  budgetMax    Int?
+  experience   String   @default("INTERMEDIATE") // ENTRY | INTERMEDIATE | EXPERT
+  duration     String?  // e.g. "1–3 months"
+  status       String   @default("OPEN") // DRAFT | OPEN | CLOSED
+  visibility   String   @default("PUBLIC") // PUBLIC | PRIVATE
+  proposalCount Int     @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  skills      JobSkill[]
+  proposals   Proposal[]
+  contracts   Contract[]
+
+  @@index([status, createdAt])
+  @@index([clientId])
+  @@index([category])
+}
+
+model JobSkill {
+  id      String @id @default(cuid())
+  jobId   String
+  skillId String
+  job     Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  skill   Skill  @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, skillId])
+}
+
+model Proposal {
+  id           String   @id @default(cuid())
+  jobId        String
+  freelancerId String
+  job          Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  freelancer   User     @relation(fields: [freelancerId], references: [id], onDelete: Cascade)
+  coverLetter  String
+  bidAmount    Int
+  deliveryDays Int
+  status       String   @default("SUBMITTED") // SUBMITTED | SHORTLISTED | ACCEPTED | DECLINED | WITHDRAWN
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([jobId, freelancerId])
+  @@index([freelancerId])
+}
+
+model Contract {
+  id           String   @id @default(cuid())
+  jobId        String?
+  job          Job?     @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  clientId     String
+  freelancerId String
+  client       User     @relation("ClientContracts", fields: [clientId], references: [id], onDelete: Cascade)
+  freelancer   User     @relation("FreelancerContracts", fields: [freelancerId], references: [id], onDelete: Cascade)
+  title        String
+  totalAmount  Int
+  currency     String   @default("USD")
+  status       String   @default("ACTIVE") // ACTIVE | COMPLETED | CANCELLED
+  startedAt    DateTime @default(now())
+  endedAt      DateTime?
+
+  milestones  Milestone[]
+  messages    Message[]
+  ledger      LedgerEntry[]
+  review      Review?
+
+  @@index([clientId])
+  @@index([freelancerId])
+}
+
+model Milestone {
+  id           String   @id @default(cuid())
+  contractId   String
+  contract     Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  title        String
+  description  String?
+  amount       Int
+  status       String   @default("FUNDED") // FUNDED | IN_PROGRESS | SUBMITTED | RELEASED
+  dueAt        DateTime?
+  releasedAt   DateTime?
+  createdAt    DateTime @default(now())
+
+  @@index([contractId])
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  contractId String
+  contract   Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  senderId   String
+  sender     User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  body       String
+  readAt     DateTime?
+  createdAt  DateTime @default(now())
+
+  @@index([contractId, createdAt])
+}
+
+/// Simulated escrow: no real money moves. A ledger entry records intent so a
+/// real payment provider can be plugged in later without changing the UI.
+model LedgerEntry {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contractId String?
+  contract   Contract? @relation(fields: [contractId], references: [id], onDelete: SetNull)
+  kind       String // FUND | RELEASE | FEE | REFUND | WITHDRAW
+  amount     Int
+  note       String?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  contractId String   @unique
+  contract   Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  authorId   String
+  subjectId  String
+  author     User     @relation("ReviewAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  subject    User     @relation("ReviewSubject", fields: [subjectId], references: [id], onDelete: Cascade)
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now())
+
+  @@index([subjectId])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind      String
+  body      String
+  href      String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, readAt])
+}
