@@ -7,6 +7,7 @@ import { Avatar, Badge, Stars } from '@/components/ui/avatar';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { ProposalForm } from '@/components/forms/proposal-form';
 import { ProposalActions } from '@/components/forms/proposal-actions';
+import { ReportForm } from '@/components/forms/report-form';
 import { getJob } from '@/server/queries';
 import { getCurrentUser } from '@/lib/auth';
 import { formatBudget, formatMoney } from '@/lib/money';
@@ -200,6 +201,8 @@ export default async function JobDetailPage({ params }: { params: Params }) {
               </ButtonLink>
             </div>
           ) : null}
+
+          {user && !isOwner ? <ReportForm targetType="JOB" targetId={job.id} label="Report this job" /> : null}
         </aside>
       </div>
     </div>

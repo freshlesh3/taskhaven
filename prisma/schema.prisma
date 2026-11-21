@@ -44,6 +44,9 @@ model User {
   reviewsReceived Review[]       @relation("ReviewSubject")
   ledgerEntries   LedgerEntry[]
   notifications   Notification[]
+  reportsMade     Report[]       @relation("ReportsMade")
+  reportsResolved Report[]       @relation("ReportsResolved")
+  auditEntries    AuditLog[]     @relation("AuditActor")
 
   @@index([role])
 }
@@ -244,4 +247,37 @@ model Notification {
   createdAt DateTime  @default(now())
 
   @@index([userId, readAt])
+}
+
+/// A member flagging a job or profile for a moderator to review.
+model Report {
+  id           String    @id @default(cuid())
+  reporterId   String
+  reporter     User      @relation("ReportsMade", fields: [reporterId], references: [id], onDelete: Cascade)
+  targetType   String // JOB | USER
+  targetId     String
+  reason       String // SPAM | SCAM | OFF_PLATFORM | HARASSMENT | MISREPRESENTATION | OTHER
+  details      String?
+  status       String    @default("OPEN") // OPEN | RESOLVED | DISMISSED
+  createdAt    DateTime  @default(now())
+  resolvedAt   DateTime?
+  resolvedById String?
+  resolvedBy   User?     @relation("ReportsResolved", fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([targetType, targetId])
+}
+
+/// Append-only record of privileged actions, so moderation is reviewable.
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  actor      User     @relation("AuditActor", fields: [actorId], references: [id], onDelete: Cascade)
+  action     String // JOB_HIDDEN | JOB_UNHIDDEN | JOB_CLOSED | USER_SUSPENDED | USER_REINSTATED | REPORT_RESOLVED | REPORT_DISMISSED
+  targetType String
+  targetId   String
+  detail     String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
 }

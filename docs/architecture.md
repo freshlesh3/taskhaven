@@ -69,6 +69,16 @@ later means mapping an external identity onto `User` and calling `createSession`
 - `src/lib/rate-limit.ts` is a fixed-window limiter keyed by client address (signup, login) or account id (resends).
   The map is in-process and swept when it grows; behind multiple instances, swap it for Redis.
 
+## Moderation and audit
+
+- Members can report a job or a profile (`src/server/actions/reports.ts`). Reports are limited to five per account per
+  day, cannot target your own content, and duplicate open reports collapse into one.
+- Admins work the queue at `/admin/reports`: an open report can be resolved with an action (hide the job, suspend the
+  account), resolved without action, or dismissed.
+- Every privileged mutation calls `recordAudit` (`src/lib/audit.ts`), which appends to `AuditLog` and never throws into
+  the caller — losing an audit write must not roll back the moderation action it describes.
+- `/admin/audit` renders the trail newest-first; it is intentionally read-only.
+
 ## Rendering and caching
 
 - Pages are dynamic (they read cookies for the header), so there is no stale personalised markup.

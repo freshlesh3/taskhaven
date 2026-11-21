@@ -65,7 +65,12 @@ export async function getJob(id: string) {
   });
 }
 
-export async function listTalent(filters: { q?: string; skill?: string; available?: boolean } = {}) {
+export async function listTalent(
+  filters: { q?: string; skill?: string; available?: boolean; page?: number; perPage?: number } = {},
+) {
+  const perPage = filters.perPage ?? 12;
+  const page = Math.max(1, filters.page ?? 1);
+
   const where: Prisma.UserWhereInput = {
     isPublic: true,
     isSuspended: false,
@@ -87,13 +92,35 @@ export async function listTalent(filters: { q?: string; skill?: string; availabl
   return db.user.findMany({
     where,
     orderBy: [{ isAvailable: 'desc' }, { createdAt: 'asc' }],
-    take: 48,
+    skip: (page - 1) * perPage,
+    take: perPage,
     include: {
       skills: { include: { skill: true } },
       reviewsReceived: { select: { rating: true } },
       contractsWork: { where: { status: 'COMPLETED' }, select: { id: true } },
     },
   });
+}
+
+export async function countTalent(filters: { q?: string; skill?: string; available?: boolean } = {}) {
+  const where: Prisma.UserWhereInput = {
+    isPublic: true,
+    isSuspended: false,
+    role: { in: ['FREELANCER', 'CLIENT'] },
+    ...(filters.available ? { isAvailable: true } : {}),
+    ...(filters.q
+      ? {
+          OR: [
+            { name: { contains: filters.q } },
+            { headline: { contains: filters.q } },
+            { bio: { contains: filters.q } },
+            { skills: { some: { skill: { name: { contains: filters.q } } } } },
+          ],
+        }
+      : {}),
+    ...(filters.skill ? { skills: { some: { skill: { slug: filters.skill } } } } : {}),
+  };
+  return db.user.count({ where });
 }
 
 export async function getUserByHandle(handle: string) {

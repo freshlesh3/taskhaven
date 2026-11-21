@@ -41,6 +41,25 @@ export const MILESTONE_STATUS_LABELS: Record<string, string> = {
   RELEASED: 'Released',
 };
 
+export const REPORT_REASONS = [
+  { value: 'SPAM', label: 'Spam or duplicate posting' },
+  { value: 'SCAM', label: 'Scam or payment request off-platform' },
+  { value: 'OFF_PLATFORM', label: 'Asking to work outside Taskhaven' },
+  { value: 'HARASSMENT', label: 'Harassment or abusive language' },
+  { value: 'MISREPRESENTATION', label: 'Misleading profile or job' },
+  { value: 'OTHER', label: 'Something else' },
+] as const;
+
+export const REPORT_REASON_LABELS: Record<string, string> = Object.fromEntries(
+  REPORT_REASONS.map((reason) => [reason.value, reason.label]),
+);
+
+export const REPORT_STATUS_LABELS: Record<string, string> = {
+  OPEN: 'Open',
+  RESOLVED: 'Resolved',
+  DISMISSED: 'Dismissed',
+};
+
 export function categoryLabel(slug: string): string {
   return CATEGORIES.find((category) => category.slug === slug)?.label ?? slug;
 }

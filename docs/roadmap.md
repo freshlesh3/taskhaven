@@ -18,12 +18,14 @@ Ordered by what unblocks the most users. Nothing here is a promise of a date.
 - [x] Email verification with single-use hashed tokens
 - [x] Rate limits on signup, login and verification resends
 - [x] Password reset by email, with purpose-scoped tokens and session revocation
+- [x] Report/flag flow feeding the admin console
+- [x] Append-only audit log for privileged actions
+- [x] Pagination for the talent directory
 
 ## Next (v0.2) — make it safe to run publicly
 
-- [ ] Report/flag flow feeding the admin console
-- [ ] Pagination for talent and contracts
-- [ ] Structured audit log for privileged actions
+- [ ] Pagination for contracts and the admin queues
+- [ ] Saved searches and job alerts
 
 ## Then (v0.3) — make it useful for teams
 

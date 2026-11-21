@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { MapPin, Clock } from 'lucide-react';
 import { getUserByHandle } from '@/server/queries';
+import { getCurrentUser } from '@/lib/auth';
+import { ReportForm } from '@/components/forms/report-form';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Avatar, Badge, Stars } from '@/components/ui/avatar';
 import { ButtonLink } from '@/components/ui/button';
@@ -19,7 +21,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 
 export default async function TalentProfilePage({ params }: { params: Params }) {
   const { handle } = await params;
-  const person = await getUserByHandle(handle);
+  const [person, viewer] = await Promise.all([getUserByHandle(handle), getCurrentUser()]);
   if (!person) notFound();
 
   const ratings = person.reviewsReceived.map((review) => review.rating);
@@ -118,14 +120,20 @@ export default async function TalentProfilePage({ params }: { params: Params }) 
         <aside className="space-y-4">
           <Card>
             <CardBody className="space-y-3">
-              <div>
+              <div className="flex items-center justify-between">
                 <p className="text-xs uppercase tracking-[0.12em] text-ink-500">Hourly rate</p>
-                <p className="mt-1 text-2xl font-semibold">{formatRate(person.hourlyRate)}</p>
+                {person.isSuspended ? <Badge tone="red">Suspended</Badge> : null}
               </div>
+              <p className="text-2xl font-semibold">{formatRate(person.hourlyRate)}</p>
               <ButtonLink href="/jobs/new" className="w-full">
                 Invite to a job
               </ButtonLink>
-              <p className="text-center text-xs text-ink-500">Post a brief and mention {person.name.split(' ')[0]}.</p>
+              <p className="text-center text-xs text-ink-500">
+                Post a brief and mention {person.name.split(' ')[0]}.
+              </p>
+              {viewer && viewer.id !== person.id ? (
+                <ReportForm targetType="USER" targetId={person.id} label="Report this profile" />
+              ) : null}
             </CardBody>
           </Card>
 

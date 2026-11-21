@@ -26,10 +26,11 @@ export default async function AdminPage() {
       db.contract.count(),
       db.job.count({ where: { isHidden: true } }),
       db.user.count({ where: { isSuspended: true } }),
+      db.report.count({ where: { status: 'OPEN' } }),
     ]),
   ]);
 
-  const [userCount, jobCount, proposalCount, contractCount, hiddenJobs, suspendedUsers] = counts;
+  const [userCount, jobCount, proposalCount, contractCount, hiddenJobs, suspendedUsers, openReports] = counts;
 
   const stats = [
     { label: 'Members', value: userCount },
@@ -38,14 +39,24 @@ export default async function AdminPage() {
     { label: 'Contracts', value: contractCount },
     { label: 'Hidden jobs', value: hiddenJobs },
     { label: 'Suspended', value: suspendedUsers },
+    { label: 'Open reports', value: openReports },
   ];
 
   return (
     <div className="container-page py-10">
       <h1 className="text-3xl font-semibold tracking-tight">Moderation</h1>
       <p className="mt-2 text-sm text-ink-500">
-        Hide listings and suspend accounts. Actions are immediate and logged in the database.
+        Hide listings and suspend accounts. Actions are immediate and written to the audit log.
       </p>
+
+      <div className="mt-4 flex flex-wrap gap-4 text-sm">
+        <Link href="/admin/reports" className="font-medium text-brand-700 hover:underline">
+          Reports ({openReports})
+        </Link>
+        <Link href="/admin/audit" className="text-ink-500 hover:text-ink-950">
+          Audit log
+        </Link>
+      </div>
 
       <div className="mt-8 grid gap-3 sm:grid-cols-3 xl:grid-cols-6">
         {stats.map((stat) => (

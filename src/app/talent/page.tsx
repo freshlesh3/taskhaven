@@ -4,17 +4,19 @@ import { Card } from '@/components/ui/card';
 import { Avatar, Badge, Stars } from '@/components/ui/avatar';
 import { ButtonLink } from '@/components/ui/button';
 import { SearchBar } from '@/components/site/search-bar';
-import { listTalent } from '@/server/queries';
+import { countTalent, listTalent } from '@/server/queries';
 import { formatRate } from '@/lib/money';
 import { truncate } from '@/lib/utils';
 
 export const metadata: Metadata = { title: 'Find talent' };
 
-type SearchParams = Promise<{ q?: string; skill?: string }>;
+type SearchParams = Promise<{ q?: string; skill?: string; page?: string }>;
 
 export default async function TalentPage({ searchParams }: { searchParams: SearchParams }) {
-  const { q = '', skill } = await searchParams;
-  const people = await listTalent({ q, skill });
+  const { q = '', skill, page: pageParam } = await searchParams;
+  const page = Math.max(1, Number(pageParam ?? '1') || 1);
+  const [people, total] = await Promise.all([listTalent({ q, skill, page }), countTalent({ q, skill })]);
+  const pages = Math.max(1, Math.ceil(total / 12));
 
   const skillChips = Array.from(
     new Map(
@@ -27,7 +29,7 @@ export default async function TalentPage({ searchParams }: { searchParams: Searc
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">Find your next specialist</h1>
-          <p className="mt-2 text-sm text-ink-500">{people.length} independent professionals ready to work.</p>
+          <p className="mt-2 text-sm text-ink-500">{total} independent professionals ready to work.</p>
         </div>
         <ButtonLink href="/jobs/new">Post a job instead</ButtonLink>
       </div>
@@ -116,6 +118,31 @@ export default async function TalentPage({ searchParams }: { searchParams: Searc
           <h2 className="text-lg font-semibold">No one matches yet</h2>
           <p className="mt-2 text-sm text-ink-500">Try a different skill, or post a job and let people come to you.</p>
         </Card>
+      ) : null}
+
+      {pages > 1 ? (
+        <nav className="mt-10 flex items-center justify-center gap-2" aria-label="Pagination">
+          {Array.from({ length: pages }, (_, index) => index + 1).map((number) => {
+            const params = new URLSearchParams();
+            if (q) params.set('q', q);
+            if (skill) params.set('skill', skill);
+            if (number > 1) params.set('page', String(number));
+            const query = params.toString();
+            return (
+              <Link
+                key={number}
+                href={query ? `/talent?${query}` : '/talent'}
+                className={
+                  number === page
+                    ? 'flex h-9 w-9 items-center justify-center rounded-full bg-ink-950 text-sm font-medium text-white'
+                    : 'flex h-9 w-9 items-center justify-center rounded-full border border-ink-100 text-sm text-ink-700 hover:bg-ink-50'
+                }
+              >
+                {number}
+              </Link>
+            );
+          })}
+        </nav>
       ) : null}
     </div>
   );

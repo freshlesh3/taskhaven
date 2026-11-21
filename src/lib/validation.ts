@@ -76,5 +76,12 @@ export const reviewSchema = z.object({
   comment: z.string().trim().max(2000).optional().or(z.literal('')),
 });
 
+export const reportSchema = z.object({
+  targetType: z.enum(['JOB', 'USER']),
+  targetId: z.string().min(1),
+  reason: z.enum(['SPAM', 'SCAM', 'OFF_PLATFORM', 'HARASSMENT', 'MISREPRESENTATION', 'OTHER']),
+  details: z.string().trim().max(1000).optional().or(z.literal('')),
+});
+
 export type SignupInput = z.infer<typeof signupSchema>;
 export type JobInput = z.infer<typeof jobSchema>;

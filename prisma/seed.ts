@@ -485,6 +485,48 @@ async function main() {
     });
   }
 
+  const adminId = userIds.get('operator');
+  const bookkeepingJobId = jobIds.get('Set up bookkeeping for a two-person studio');
+  const copyJobId = jobIds.get('Write the launch copy for a developer tool');
+  const priyaId = userIds.get('priya');
+  const devonId = userIds.get('devon');
+
+  if (adminId && priyaId && bookkeepingJobId) {
+    await db.report.create({
+      data: {
+        reporterId: priyaId,
+        targetType: 'JOB',
+        targetId: bookkeepingJobId,
+        reason: 'OFF_PLATFORM',
+        details: 'The poster asked me to invoice outside the platform before sharing any brief. Wanted to flag it.',
+      },
+    });
+  }
+
+  if (adminId && devonId && copyJobId) {
+    const dismissed = await db.report.create({
+      data: {
+        reporterId: devonId,
+        targetType: 'JOB',
+        targetId: copyJobId,
+        reason: 'SPAM',
+        status: 'DISMISSED',
+        resolvedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+        resolvedById: adminId,
+      },
+    });
+
+    await db.auditLog.create({
+      data: {
+        actorId: adminId,
+        action: 'REPORT_DISMISSED',
+        targetType: 'REPORT',
+        targetId: dismissed.id,
+        detail: `JOB:${copyJobId} · SPAM`,
+      },
+    });
+  }
+
   console.log(`Seeded ${USERS.length} users, ${JOBS.length} jobs, ${proposalCount} proposals.`);
   console.log('Demo password for every account: password123');
 }

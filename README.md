@@ -38,6 +38,8 @@ proprietary dependency in the critical path. Fork it for a niche marketplace, an
 - **Dashboards** — client and freelancer views: active contracts, open jobs, proposals out, released earnings.
 - **Notifications** — in-app inbox with unread counts and deep links to the record that changed.
 - **Moderation** — an admin console to hide jobs, suspend accounts (sessions revoked) and close listings.
+- **Reports and audit** — members flag jobs or profiles; the queue supports hide/suspend/resolve/dismiss, and every
+  privileged action is written to an append-only audit log.
 - **Account safety** — password change revokes every other session; suspended accounts cannot sign in.
 - **Ops endpoints** — `/api/health` reports database connectivity for uptime checks.
 
