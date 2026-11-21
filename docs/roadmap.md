@@ -17,10 +17,10 @@ Ordered by what unblocks the most users. Nothing here is a promise of a date.
 - [x] Password change that revokes other sessions
 - [x] Email verification with single-use hashed tokens
 - [x] Rate limits on signup, login and verification resends
+- [x] Password reset by email, with purpose-scoped tokens and session revocation
 
 ## Next (v0.2) — make it safe to run publicly
 
-- [ ] Password reset by email (the token plumbing and mailer exist)
 - [ ] Report/flag flow feeding the admin console
 - [ ] Pagination for talent and contracts
 - [ ] Structured audit log for privileged actions

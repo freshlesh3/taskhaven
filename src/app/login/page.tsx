@@ -10,13 +10,13 @@ import { Avatar } from '@/components/ui/avatar';
 
 export const metadata: Metadata = { title: 'Log in' };
 
-type SearchParams = Promise<{ next?: string }>;
+type SearchParams = Promise<{ next?: string; reset?: string }>;
 
 export default async function LoginPage({ searchParams }: { searchParams: SearchParams }) {
   const user = await getCurrentUser();
   if (user) redirect('/dashboard');
 
-  const { next } = await searchParams;
+  const { next, reset } = await searchParams;
   const demoUsers = await db.user.findMany({ orderBy: { createdAt: 'asc' }, take: 2, select: { name: true, email: true, role: true, avatarHue: true } });
 
   return (
@@ -29,7 +29,17 @@ export default async function LoginPage({ searchParams }: { searchParams: Search
           </p>
 
           <div className="mt-8 rounded-2xl border border-ink-100 bg-white p-6 shadow-card">
+            {reset ? (
+              <div className="mb-5 rounded-xl bg-brand-50 px-4 py-3 text-sm text-brand-900">
+                Password updated. Log in with your new password.
+              </div>
+            ) : null}
             <LoginForm next={next} />
+            <p className="mt-4 text-center text-xs text-ink-500">
+              <Link href="/forgot-password" className="font-medium text-brand-700 hover:underline">
+                Forgot your password?
+              </Link>
+            </p>
           </div>
         </div>
 

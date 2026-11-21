@@ -26,7 +26,8 @@ proprietary dependency in the critical path. Fork it for a niche marketplace, an
 
 - **Accounts and sessions** — email + password auth, bcrypt hashes, database-backed sessions, hashed session tokens.
 - **Email verification** — single-use hashed tokens, 24-hour expiry, gated posting and proposals, resend with limits.
-- **Abuse brakes** — per-IP limits on signup and login, per-account limits on verification resends.
+- **Password reset** — purpose-scoped one-hour tokens; a reset signs out every session.
+- **Abuse brakes** — per-IP limits on signup and login, per-account limits on verification resends and resets.
 - **Two-sided profiles** — one account can hire and work; public profiles with skills, rates, availability and reviews.
 - **Jobs** — post a brief with budget type, range, experience level, duration and skills; browse and filter by
   category, budget and level, with keyword search across titles, descriptions and skills.
