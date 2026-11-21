@@ -11,6 +11,8 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "ci": "npm run typecheck && npm test && npm run build",
+    "verify": "npm run ci && tsx scripts/check-verification.ts && tsx scripts/check-reset.ts",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma db push --force-reset && tsx prisma/seed.ts",

@@ -1,0 +1,14 @@
+#!/bin/sh
+# Runs the same checks as the GitHub Actions workflow before a push.
+#
+# Enable once per clone:
+#   git config core.hooksPath .githooks
+#
+# Skip in an emergency with: git push --no-verify
+
+set -e
+
+echo "[taskhaven] typecheck, tests and build before push…"
+npm run ci
+
+echo "[taskhaven] all checks passed."

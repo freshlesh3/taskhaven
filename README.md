@@ -125,10 +125,19 @@ notifications, real payment adapters, saved searches, and an admin/moderation su
 Issues and pull requests are welcome — see [`CONTRIBUTING.md`](./CONTRIBUTING.md). Security reports: see
 [`SECURITY.md`](./SECURITY.md).
 
-### Enabling CI
+### Continuous integration
 
-The workflow lives at [`docs/ci/github-actions.yml`](./docs/ci/github-actions.yml) so it can be reviewed like any other
-file. To activate it, copy it into place and push with a token that has the `workflow` scope:
+`npm run ci` runs the same three gates as the pipeline — typecheck, unit tests, production build — and
+`npm run verify` adds the database-level auth smoke checks. Run either before opening a pull request.
+
+To run them automatically before every push:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+The hosted workflow lives at [`docs/ci/github-actions.yml`](./docs/ci/github-actions.yml) so it can be reviewed like any
+other file. To activate it on GitHub, copy it into place and push with a token that has the `workflow` scope:
 
 ```bash
 mkdir -p .github/workflows
