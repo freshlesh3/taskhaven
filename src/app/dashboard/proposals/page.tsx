@@ -4,7 +4,8 @@ import { requireUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { Card, EmptyState } from '@/components/ui/card';
 import { Badge } from '@/components/ui/avatar';
-import { ButtonLink } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
+import { withdrawProposalAction } from '@/server/actions/jobs';
 import { PROPOSAL_STATUS_LABELS } from '@/lib/constants';
 import { formatMoney } from '@/lib/money';
 import { timeAgo, truncate } from '@/lib/utils';
@@ -56,6 +57,14 @@ export default async function ProposalsPage() {
                   <Badge tone={proposal.status === 'ACCEPTED' ? 'green' : proposal.status === 'DECLINED' ? 'red' : 'neutral'}>
                     {PROPOSAL_STATUS_LABELS[proposal.status] ?? proposal.status}
                   </Badge>
+                  {proposal.status === 'SUBMITTED' || proposal.status === 'SHORTLISTED' ? (
+                    <form action={withdrawProposalAction} className="mt-2">
+                      <input type="hidden" name="proposalId" value={proposal.id} />
+                      <Button type="submit" size="sm" variant="ghost">
+                        Withdraw
+                      </Button>
+                    </form>
+                  ) : null}
                 </div>
               </div>
             </Card>

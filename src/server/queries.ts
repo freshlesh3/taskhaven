@@ -18,6 +18,7 @@ export async function listJobs(filters: JobFilters = {}) {
   const where: Prisma.JobWhereInput = {
     status: 'OPEN',
     visibility: 'PUBLIC',
+    isHidden: false,
     ...(filters.category ? { category: filters.category } : {}),
     ...(filters.budgetType ? { budgetType: filters.budgetType } : {}),
     ...(filters.experience ? { experience: filters.experience } : {}),
@@ -67,6 +68,7 @@ export async function getJob(id: string) {
 export async function listTalent(filters: { q?: string; skill?: string; available?: boolean } = {}) {
   const where: Prisma.UserWhereInput = {
     isPublic: true,
+    isSuspended: false,
     role: { in: ['FREELANCER', 'CLIENT'] },
     ...(filters.available ? { isAvailable: true } : {}),
     ...(filters.q

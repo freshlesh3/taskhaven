@@ -85,6 +85,17 @@ const USERS = [
     bio: 'We run logistics software for mid-size farms. Always hiring for short, well-scoped pieces of work.',
     skills: ['SEO'],
   },
+  {
+    email: 'admin@taskhaven.dev',
+    name: 'Taskhaven Operator',
+    handle: 'operator',
+    role: 'ADMIN',
+    headline: 'Platform operator',
+    country: 'United States',
+    avatarHue: 210,
+    bio: 'Runs this instance: moderation, reports and account support.',
+    skills: [],
+  },
 ] as const;
 
 const JOBS = [

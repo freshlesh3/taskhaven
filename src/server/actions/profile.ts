@@ -1,8 +1,11 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { createHash } from 'node:crypto';
+import { cookies } from 'next/headers';
 import { db } from '@/lib/db';
 import { requireUser } from '@/lib/auth';
+import { hashPassword, verifyPassword } from '@/lib/password';
 import { profileSchema } from '@/lib/validation';
 import { slugify } from '@/lib/utils';
 import type { FormState } from './jobs';
@@ -64,4 +67,27 @@ export async function updateRoleAction(formData: FormData): Promise<void> {
   if (!['FREELANCER', 'CLIENT'].includes(role)) return;
   await db.user.update({ where: { id: user.id }, data: { role } });
   revalidatePath('/dashboard');
+}
+
+export async function changePasswordAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  const user = await requireUser('/dashboard/settings');
+  const current = String(formData.get('currentPassword') ?? '');
+  const next = String(formData.get('newPassword') ?? '');
+  const confirm = String(formData.get('confirmPassword') ?? '');
+
+  if (!(await verifyPassword(current, user.passwordHash))) {
+    return { error: 'Your current password is not correct.' };
+  }
+  if (next.length < 8) return { error: 'Use at least 8 characters.' };
+  if (next !== confirm) return { error: 'The new passwords do not match.' };
+
+  await db.user.update({ where: { id: user.id }, data: { passwordHash: await hashPassword(next) } });
+  // Sign out other sessions so a leaked token cannot outlive the change.
+  const store = await cookies();
+  const token = store.get('th_session')?.value;
+  if (token) {
+    const keep = createHash('sha256').update(token).digest('hex');
+    await db.session.deleteMany({ where: { userId: user.id, tokenHash: { not: keep } } });
+  }
+  return { error: undefined };
 }

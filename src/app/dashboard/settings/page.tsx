@@ -4,6 +4,7 @@ import { updateRoleAction } from '@/server/actions/profile';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Field, Select } from '@/components/ui/input';
+import { PasswordForm } from '@/components/forms/password-form';
 
 export const metadata: Metadata = { title: 'Settings' };
 
@@ -52,6 +53,15 @@ export default async function SettingsPage() {
             <p className="mt-3 text-xs text-ink-500">
               One account can do both. This only changes the dashboard it opens on.
             </p>
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <h2 className="text-sm font-semibold">Password</h2>
+          </CardHeader>
+          <CardBody>
+            <PasswordForm />
           </CardBody>
         </Card>
 

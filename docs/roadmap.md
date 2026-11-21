@@ -11,13 +11,16 @@ Ordered by what unblocks the most users. Nothing here is a promise of a date.
 - [x] Simulated escrow ledger and releases
 - [x] Reviews after completion
 - [x] Health endpoint, tests, CI
+- [x] Notifications inbox with unread counts
+- [x] Admin console: hide jobs, suspend accounts, close listings
+- [x] Job editing, closing and proposal withdrawal
+- [x] Password change that revokes other sessions
 
 ## Next (v0.2) — make it safe to run publicly
 
 - [ ] Email verification and password reset
 - [ ] Signup and login rate limiting
-- [ ] Admin/moderation surface: hide jobs, suspend accounts, review reports
-- [ ] Notification inbox page (records exist; only counts are shown)
+- [ ] Report/flag flow feeding the admin console
 - [ ] Pagination for talent and contracts
 - [ ] Structured audit log for privileged actions
 

@@ -12,6 +12,10 @@ milestones, message in context, and record every payment in a ledger — all in 
 
 ![Taskhaven home page](./docs/screenshot-home.png)
 
+The moderation console, available to accounts with the `ADMIN` role:
+
+![Taskhaven admin console](./docs/screenshot-admin.png)
+
 ## Why
 
 Marketplace software is usually either a closed SaaS product or a thin directory. Taskhaven is the middle: a real
@@ -29,6 +33,9 @@ proprietary dependency in the critical path. Fork it for a niche marketplace, an
 - **Simulated escrow** — funding and releases are recorded per milestone, net of a configurable 10% fee.
 - **Reviews** — unlocked when a contract completes, shown on the recipient's profile.
 - **Dashboards** — client and freelancer views: active contracts, open jobs, proposals out, released earnings.
+- **Notifications** — in-app inbox with unread counts and deep links to the record that changed.
+- **Moderation** — an admin console to hide jobs, suspend accounts (sessions revoked) and close listings.
+- **Account safety** — password change revokes every other session; suspended accounts cannot sign in.
 - **Ops endpoints** — `/api/health` reports database connectivity for uptime checks.
 
 ## Quick start
@@ -54,6 +61,7 @@ Open <http://localhost:3000>. The seed creates eight jobs, six proposals and one
 | Freelancer | `priya@taskhaven.dev`  | `password123` |
 | Client     | `lucas@taskhaven.dev`  | `password123` |
 | Client     | `aisha@taskhaven.dev`  | `password123` |
+| Admin      | `admin@taskhaven.dev`  | `password123` |
 
 The login screen has one-click buttons for the seeded accounts. **Delete these accounts before exposing an instance
 to the internet.**
@@ -108,6 +116,22 @@ notifications, real payment adapters, saved searches, and an admin/moderation su
 
 Issues and pull requests are welcome — see [`CONTRIBUTING.md`](./CONTRIBUTING.md). Security reports: see
 [`SECURITY.md`](./SECURITY.md).
+
+### Enabling CI
+
+The workflow lives at [`docs/ci/github-actions.yml`](./docs/ci/github-actions.yml) so it can be reviewed like any other
+file. To activate it, copy it into place and push with a token that has the `workflow` scope:
+
+```bash
+mkdir -p .github/workflows
+cp docs/ci/github-actions.yml .github/workflows/ci.yml
+git add .github/workflows/ci.yml && git commit -m "ci: enable the verification workflow"
+# a token without the `workflow` scope cannot push this path:
+gh auth refresh -s workflow
+git push
+```
+
+It runs typecheck, unit tests and a production build on every push and pull request.
 
 ## License
 

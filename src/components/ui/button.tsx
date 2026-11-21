@@ -9,7 +9,7 @@ const styles = {
   outline:
     'border border-ink-950/80 bg-white text-ink-950 hover:bg-ink-50 disabled:border-ink-300 disabled:text-ink-300',
   ghost: 'text-ink-900 hover:bg-ink-100',
-  danger: 'bg-red-600 text-white hover:bg-red-700',
+  danger: 'border border-red-200 bg-white text-red-600 hover:bg-red-50 disabled:border-ink-200 disabled:text-ink-300',
 } as const;
 
 const sizes = {

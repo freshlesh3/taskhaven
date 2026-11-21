@@ -71,6 +71,10 @@ export async function loginAction(_prev: AuthState, formData: FormData): Promise
     return { error: 'That email and password do not match.' };
   }
 
+  if (user.isSuspended) {
+    return { error: 'This account is suspended. Contact the site operator.' };
+  }
+
   await createSession(user.id);
 
   const next = String(formData.get('next') ?? '');

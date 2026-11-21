@@ -11,10 +11,10 @@ import { CONTRACT_STATUS_LABELS, MILESTONE_STATUS_LABELS } from '@/lib/constants
 import { formatMoney } from '@/lib/money';
 import { timeAgo } from '@/lib/utils';
 import {
-  addMilestoneAction,
+  addMilestoneFormAction,
   completeContractAction,
   releaseMilestoneAction,
-  reviewAction,
+  reviewFormAction,
   sendMessageAction,
   submitMilestoneAction,
 } from '@/server/actions/contracts';
@@ -149,7 +149,7 @@ export default async function ContractPage({ params }: { params: Params }) {
               {isClient && contract.status === 'ACTIVE' ? (
                 <details className="rounded-xl bg-ink-50 p-4">
                   <summary className="cursor-pointer text-sm font-medium text-ink-900">Add a milestone</summary>
-                  <form action={async (formData: FormData) => { await addMilestoneAction(null, formData); }} className="mt-4 space-y-3">
+                  <form action={addMilestoneFormAction} className="mt-4 space-y-3">
                     <input type="hidden" name="contractId" value={contract.id} />
                     <Field label="Title" htmlFor="milestone-title">
                       <Input id="milestone-title" name="title" placeholder="Design handoff" required />
@@ -266,7 +266,7 @@ export default async function ContractPage({ params }: { params: Params }) {
                 <h2 className="text-sm font-semibold">Leave a review</h2>
               </CardHeader>
               <CardBody>
-                <form action={async (formData: FormData) => { await reviewAction(null, formData); }} className="space-y-3">
+                <form action={reviewFormAction} className="space-y-3">
                   <input type="hidden" name="contractId" value={contract.id} />
                   <Field label="Rating" htmlFor="rating">
                     <select id="rating" name="rating" className="w-full rounded-lg border border-ink-100 px-3 py-2 text-sm" defaultValue="5">

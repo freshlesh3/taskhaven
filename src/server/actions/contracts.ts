@@ -200,3 +200,12 @@ export async function reviewAction(_prev: FormState, formData: FormData): Promis
   revalidatePath(`/talent/${contract.clientId === user.id ? contract.freelancer.handle : contract.client.handle}`);
   return { error: undefined };
 }
+
+/** Plain-form wrappers: server components cannot pass inline handlers to <form>. */
+export async function addMilestoneFormAction(formData: FormData): Promise<void> {
+  await addMilestoneAction(null, formData);
+}
+
+export async function reviewFormAction(formData: FormData): Promise<void> {
+  await reviewAction(null, formData);
+}

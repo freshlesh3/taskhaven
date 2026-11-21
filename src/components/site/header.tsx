@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { User } from '@prisma/client';
+import { Bell } from 'lucide-react';
 import { logoutAction } from '@/server/actions/auth';
 import { Logo } from './logo';
 import { Avatar } from '@/components/ui/avatar';
@@ -13,7 +14,7 @@ const nav = [
   { href: '/pricing', label: 'Pricing' },
 ];
 
-export function Header({ user }: { user: User | null }) {
+export function Header({ user, unreadCount = 0 }: { user: User | null; unreadCount?: number }) {
   return (
     <header className="sticky top-0 z-40 border-b border-ink-100 bg-white/95 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-page items-center gap-6 px-4 sm:px-6">
@@ -34,6 +35,14 @@ export function Header({ user }: { user: User | null }) {
         <div className="ml-auto flex items-center gap-2 md:ml-0">
           {user ? (
             <>
+              <Link href="/notifications" className="relative rounded-full p-2 hover:bg-ink-50" aria-label="Notifications">
+                <Bell className="h-5 w-5 text-ink-700" />
+                {unreadCount > 0 ? (
+                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-600 px-1 text-[10px] font-semibold text-white">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                ) : null}
+              </Link>
               <Link href="/dashboard" className={buttonClasses('ghost', 'sm')}>
                 Dashboard
               </Link>
@@ -56,6 +65,11 @@ export function Header({ user }: { user: User | null }) {
                   <Link href="/dashboard/settings" className="block px-3 py-2 text-sm hover:bg-ink-50">
                     Settings
                   </Link>
+                  {user.role === 'ADMIN' ? (
+                    <Link href="/admin" className="block px-3 py-2 text-sm hover:bg-ink-50">
+                      Admin
+                    </Link>
+                  ) : null}
                   <div className="my-1 h-px bg-ink-100" />
                   <form action={logoutAction}>
                     <button type="submit" className="block w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50">

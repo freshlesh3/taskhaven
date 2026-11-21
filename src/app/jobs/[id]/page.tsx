@@ -182,6 +182,9 @@ export default async function JobDetailPage({ params }: { params: Params }) {
 
           {isOwner ? (
             <div className="flex gap-2">
+              <ButtonLink href={`/jobs/${job.id}/edit`} variant="outline" className="w-full">
+                Edit job
+              </ButtonLink>
               <ButtonLink href="/dashboard/jobs" variant="outline" className="w-full">
                 Manage my jobs
               </ButtonLink>
